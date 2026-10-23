@@ -1,0 +1,86 @@
+{
+  "skill": "salesforce-developer",
+  "platform": "API 67.0 / Winter '27",
+  "how_to_run": "Run each prompt with the skill enabled, save the answer to evals/output/<id>.md, then: python .github/scripts/grade-evals.py .github/skills/salesforce-developer/evals/evals.json evals/output",
+  "cases": [
+    {
+      "id": "dev-01-trigger-bulk",
+      "prompt": "Write an Apex trigger on Account that copies BillingCity to all related Contacts' MailingCity when BillingCity changes. Include the test class.",
+      "expected_behavior": [
+        "Single AccountTrigger delegating to a handler with switch on Trigger.operationType",
+        "No SOQL/DML inside loops; only processes Accounts whose BillingCity changed",
+        "Explicit access mode on query and DML; no sharing keyword on the trigger",
+        "Test with 200 records, a negative case and System.runAs"
+      ],
+      "assertions": [
+        { "type": "not_contains", "value": "WITH SECURITY_ENFORCED" },
+        { "type": "regex", "value": "WITH (USER|SYSTEM)_MODE|AccessLevel\\.(USER|SYSTEM)_MODE|as user" },
+        { "type": "regex", "value": "switch on Trigger\\.operationType" },
+        { "type": "regex", "value": "<apiVersion>67\\.0</apiVersion>" },
+        { "type": "regex", "value": "System\\.runAs" },
+        { "type": "regex", "value": "Assert\\.\\w+\\(" },
+        { "type": "not_regex", "value": "static\\s+Boolean\\s+\\w*(run|recurs|first)\\w*", "flags": "i" }
+      ]
+    },
+    {
+      "id": "dev-02-lwc-search",
+      "prompt": "Create an LWC called accountSearch with a search input and a lightning-datatable of matching Accounts, plus the Apex controller and Jest test.",
+      "expected_behavior": [
+        "lwc:if directives, no if:true",
+        "Debounced input; cacheable Apex for read; USER_MODE query with bind variable",
+        "Loading, empty and error states; reduceErrors or equivalent",
+        "Trivial template expressions allowed; filtering logic in JS"
+      ],
+      "assertions": [
+        { "type": "not_regex", "value": "if:true|if:false" },
+        { "type": "not_contains", "value": "WITH SECURITY_ENFORCED" },
+        { "type": "regex", "value": "cacheable\\s*=\\s*true" },
+        { "type": "regex", "value": "with sharing" },
+        { "type": "regex", "value": "WITH USER_MODE|AccessLevel\\.USER_MODE" },
+        { "type": "regex", "value": "<apiVersion>67\\.0</apiVersion>" }
+      ]
+    },
+    {
+      "id": "dev-03-migrate-67",
+      "prompt": "Upgrade this class to API 67.0: public class AccountQueries { public static List<Account> byIndustry(String i){ return [SELECT Id, Name FROM Account WHERE Industry = :i WITH SECURITY_ENFORCED]; } }",
+      "expected_behavior": [
+        "Explains that WITH SECURITY_ENFORCED no longer compiles at 67.0",
+        "Adds explicit sharing keyword and WITH USER_MODE",
+        "Mentions the behavior change for classes without sharing keyword",
+        "Adds/updates a runAs test"
+      ],
+      "assertions": [
+        { "type": "regex", "value": "(with|inherited) sharing class AccountQueries" },
+        { "type": "regex", "value": "WITH USER_MODE" },
+        { "type": "regex", "value": "67\\.0" }
+      ]
+    },
+    {
+      "id": "dev-04-multiline-template",
+      "prompt": "Build the JSON body for a callout with accountName and lastUpdated in Apex at API 67.0, in a readable way.",
+      "expected_behavior": [
+        "Uses ''' multiline string and String.template",
+        "Warns that Datetime renders in GMT",
+        "Uses Named Credential callout endpoint"
+      ],
+      "assertions": [
+        { "type": "contains", "value": "'''" },
+        { "type": "regex", "value": "\\.template\\(" },
+        { "type": "regex", "value": "callout:" }
+      ]
+    },
+    {
+      "id": "dev-05-gated-68",
+      "prompt": "In production, filter Opportunities where Amount_To_Pay__c - Amount_Paid__c > 0 using SOQL FORMULA().",
+      "expected_behavior": [
+        "States FORMULA() requires API 68.0, is Beta and is not available in production",
+        "Offers a production-safe alternative (formula field + query, or Apex filtering)"
+      ],
+      "assertions": [
+        { "type": "regex", "value": "68\\.0" },
+        { "type": "regex", "value": "[Bb]eta" },
+        { "type": "regex", "value": "production", "flags": "i" }
+      ]
+    }
+  ]
+}

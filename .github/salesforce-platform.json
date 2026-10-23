@@ -1,0 +1,35 @@
+{
+  "$comment": "Single source of truth for version-sensitive rules. Update with scripts/bump-api-version.py, never by hand-editing skills.",
+  "apiVersion": "67.0",
+  "apiRelease": "Summer '26",
+  "orgRelease": "Winter '27",
+  "orgReleaseApiVersion": "68.0",
+  "validatedOn": "2026-10-23",
+  "reviewBy": "2027-01-31",
+  "owner": "TODO: arquiteto responsável (nome/e-mail)",
+  "precedence": [
+    "sfdx-project.json sourceApiVersion of the target project (if present)",
+    ".github/salesforce-platform.json apiVersion"
+  ],
+  "gatedFeatures": {
+    "68.0": [
+      "SOQL FORMULA() in WHERE (Beta, non-production orgs only)",
+      "AiAgentDefinition / AiAgentDefinitionVersion metadata types (both orgs must be on 68.0)",
+      "Test Discovery API testLevel parameter",
+      "Apex Symbol API v68.0 Tooling resource (Beta)"
+    ]
+  },
+  "quality": {
+    "coverageTarget": 85,
+    "coverageFloor": 75,
+    "requireAssertsInEveryTest": true,
+    "requireBulkTest": true,
+    "requireRunAsTestForUserFacingCode": true
+  },
+  "forbiddenPatterns": [
+    { "pattern": "WITH SECURITY_ENFORCED", "reason": "Does not compile at API 67.0+. Use WITH USER_MODE.", "scope": "code" },
+    { "pattern": "if:true|if:false", "reason": "Legacy LWC directives. Use lwc:if / lwc:elseif / lwc:else.", "scope": "code" },
+    { "pattern": "\\bsfdx force:", "reason": "Legacy CLI. Use sf.", "scope": "code" },
+    { "pattern": "SF_TEMP_SHOW_SECRETS", "reason": "Workaround removed on 2026-10-28. Use sf org auth show-access-token.", "scope": "code" }
+  ]
+}

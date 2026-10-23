@@ -1,0 +1,27 @@
+name: AI instructions quality
+on:
+  pull_request:
+    paths: [".github/**"]
+  schedule:
+    - cron: "0 9 1 * *"   # monthly: flags stale baseline (reviewBy) and drift
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pyyaml
+      - name: Validate skills
+        run: python .github/scripts/validate-skill.py .github/skills/salesforce-developer .github/skills/salesforce-architect-skill
+      - name: Consistency (versions, forbidden patterns)
+        run: python .github/scripts/check-consistency.py --src __none__
+      - name: Baseline review date
+        run: |
+          python - <<'PY'
+          import json, datetime, sys
+          c = json.load(open(".github/salesforce-platform.json"))
+          if datetime.date.fromisoformat(c["reviewBy"]) < datetime.date.today():
+              sys.exit(f"Baseline API {c['apiVersion']} passed reviewBy {c['reviewBy']} — review platform-release-delta.md")
+          print("baseline within review window")
+          PY

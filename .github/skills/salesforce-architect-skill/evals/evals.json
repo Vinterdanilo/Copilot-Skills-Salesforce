@@ -1,0 +1,53 @@
+{
+  "skill": "salesforce-architect-skill",
+  "platform": "API 67.0 / Winter '27",
+  "cases": [
+    {
+      "id": "arch-01-erp-integration",
+      "prompt": "Design the integration between Salesforce and SAP for orders: 50k orders/day, SAP is system of record for pricing, sales reps need near-real-time status.",
+      "expected_behavior": [
+        "States system of record per entity and direction/timing per flow",
+        "Separates real-time status (events/CDC) from bulk sync (Bulk API 2.0/middleware)",
+        "Idempotency key (External ID + upsert), retry, dead-letter and monitoring",
+        "OAuth via External Client App; pinned API version",
+        "Mermaid diagram and decision table with at least two options"
+      ],
+      "assertions": [
+        { "type": "regex", "value": "```mermaid" },
+        { "type": "regex", "value": "[Ii]dempot" },
+        { "type": "regex", "value": "External ?ID", "flags": "i" },
+        { "type": "not_regex", "value": "username.{0,20}password", "flags": "i" }
+      ]
+    },
+    {
+      "id": "arch-02-adr-org-strategy",
+      "prompt": "We have two business units with different sales processes and a EU data residency requirement for one of them. Single org or multi-org? Record the decision.",
+      "expected_behavior": [
+        "Uses the ADR template with options table including a non-recommended option",
+        "Residency treated as a constraint, not a trade-off",
+        "Revisit triggers are measurable",
+        "Status is Proposed, not Accepted"
+      ],
+      "assertions": [
+        { "type": "regex", "value": "Status:\\*\\*\\s*Proposed|Status: Proposed" },
+        { "type": "regex", "value": "Revisit triggers", "flags": "i" },
+        { "type": "not_regex", "value": "Status:\\*\\*\\s*Accepted" }
+      ]
+    },
+    {
+      "id": "arch-03-upgrade-readiness",
+      "prompt": "Our integrations still call /services/data/v38.0 and one uses SOAP login(). What is our risk and plan?",
+      "expected_behavior": [
+        "Mentions Use Any API Auth from 2026-12-01",
+        "SOAP login() retirement for 31.0-64.0 in Summer '27",
+        "API 31.0-40.0 deprecated Summer '27 and retired Summer '28",
+        "Plan: inventory, OAuth/JWT via External Client Apps, pinned current version"
+      ],
+      "assertions": [
+        { "type": "regex", "value": "Use Any API Auth" },
+        { "type": "regex", "value": "Summer '?28|Summer ’28" },
+        { "type": "regex", "value": "External Client App", "flags": "i" }
+      ]
+    }
+  ]
+}

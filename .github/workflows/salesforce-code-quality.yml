@@ -1,0 +1,27 @@
+name: Salesforce code quality
+on:
+  pull_request:
+    paths: ["force-app/**", "sfdx-project.json"]
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }          # Salesforce CLI requires Node.js 22+
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install Salesforce CLI + Code Analyzer
+        run: |
+          npm install --global @salesforce/cli
+          sf plugins install code-analyzer
+      - name: Code Analyzer (PMD, ESLint, …)
+        run: sf code-analyzer run --rule-selector Recommended --workspace force-app --severity-threshold 2 --output-file code-analyzer.sarif
+      - name: Project consistency (SYSTEM_MODE / without sharing justifications, forbidden patterns)
+        run: python .github/scripts/check-consistency.py --src force-app
+      - name: LWC Jest
+        run: |
+          if [ -f package.json ]; then npm ci && npm run test:unit --if-present; fi
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with: { sarif_file: code-analyzer.sarif }
